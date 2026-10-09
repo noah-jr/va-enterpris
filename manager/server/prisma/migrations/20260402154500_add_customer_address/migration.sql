@@ -1,0 +1,3 @@
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "customerAddress" TEXT;
+ALTER TABLE "InvoiceItem" ADD COLUMN IF NOT EXISTS "productName" TEXT;
+ALTER TABLE "InvoiceItem" ADD COLUMN IF NOT EXISTS "productCode" TEXT;

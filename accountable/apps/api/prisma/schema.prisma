@@ -1,0 +1,639 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String                   @id @default(uuid())
+  email                 String                   @unique @db.VarChar(255)
+  name                  String?                  @db.VarChar(255)
+  passwordHash          String                   @map("password_hash") @db.VarChar(255)
+  isActive              Boolean                  @default(true) @map("is_active")
+  lastLoginAt           DateTime?                @map("last_login_at")
+  createdAt             DateTime                 @default(now()) @map("created_at")
+  updatedAt             DateTime                 @updatedAt @map("updated_at")
+  deletedAt             DateTime?                @map("deleted_at")
+  auditLogs             AuditLog[]
+  assignments           DocumentAssignment[]
+  passwordResetTokens   UserPasswordResetToken[]
+  roles                 UserRole[]
+  uploadLinksCreated    DocumentUploadLink[]
+  uploadSessionsCreated ClientUploadSession[]
+  subscriptionsCreated  ClientSubscription[]
+
+  @@map("users")
+}
+
+model Role {
+  id              String           @id @default(uuid())
+  name            String           @unique @db.VarChar(50)
+  description     String?          @db.VarChar(500)
+  isSystem        Boolean          @default(false) @map("is_system")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              String           @id @default(uuid())
+  name            String           @unique @db.VarChar(100)
+  description     String?          @db.VarChar(500)
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId], map: "user_roles_role_id_fkey")
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId], map: "role_permissions_permission_id_fkey")
+  @@map("role_permissions")
+}
+
+model Client {
+  id                      String                     @id @default(uuid())
+  nip                     String                     @unique @db.VarChar(20)
+  name                    String                     @db.VarChar(255)
+  email                   String                     @unique @db.VarChar(255)
+  phone                   String?                    @db.VarChar(30)
+  company                 String?                    @db.VarChar(255)
+  department              String?                    @db.VarChar(255)
+  isActive                Boolean                    @default(false) @map("is_active")
+  emailVerified           Boolean                    @default(false) @map("email_verified")
+  passwordHash            String?                    @map("password_hash") @db.VarChar(255)
+  lastLoginAt             DateTime?                  @map("last_login_at")
+  createdAt               DateTime                   @default(now()) @map("created_at")
+  updatedAt               DateTime                   @updatedAt @map("updated_at")
+  deletedAt               DateTime?                  @map("deleted_at")
+  passwordResetTokens     ClientPasswordResetToken[]
+  documents               Document[]
+  uploadSessions          ClientUploadSession[]
+  subscriptions           ClientSubscription[]
+  emailVerificationTokens EmailVerificationToken[]
+  tickets                 Ticket[]
+
+  @@map("clients")
+}
+
+model Document {
+  id              String                  @id @default(uuid())
+  clientId        String                  @map("client_id")
+  uploadSessionId String?                 @map("upload_session_id")
+  title           String                  @db.VarChar(255)
+  description     String?                 @db.Text
+  type            String                  @db.VarChar(100)
+  priority        DocumentPriority        @default(NORMAL)
+  status          DocumentStatus          @default(DRAFT)
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @updatedAt @map("updated_at")
+  deletedAt       DateTime?               @map("deleted_at")
+  assignments     DocumentAssignment[]
+  files           DocumentFile[]
+  requests        DocumentRequest[]
+  statusHistory   DocumentStatusHistory[]
+  client          Client                  @relation(fields: [clientId], references: [id])
+  uploadSession   ClientUploadSession?    @relation(fields: [uploadSessionId], references: [id])
+  messages        Message[]
+  uploadLinks     DocumentUploadLink[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([uploadSessionId])
+  @@map("documents")
+}
+
+model DocumentUploadLink {
+  id              String    @id @default(uuid())
+  documentId      String    @map("document_id")
+  /// SHA-256 (hex) do token enviado no link — o token em claro nunca é persistido.
+  tokenHash       String    @unique @map("token_hash") @db.Char(64)
+  createdByUserId String    @map("created_by_user_id")
+  expiresAt       DateTime  @map("expires_at")
+  revokedAt       DateTime? @map("revoked_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  document        Document  @relation(fields: [documentId], references: [id])
+  createdByUser   User      @relation(fields: [createdByUserId], references: [id])
+
+  @@index([documentId])
+  @@index([createdByUserId])
+  @@map("document_upload_links")
+}
+
+model ClientUploadSession {
+  id              String     @id @default(uuid())
+  clientId        String     @map("client_id")
+  /// Nulo quando a sessão foi criada pelo próprio cliente na área reservada.
+  createdByUserId String?    @map("created_by_user_id")
+  label           String?    @db.VarChar(255)
+  month           Int?
+  year            Int?
+  /// SHA-256 (hex) do token — usado para lookup.
+  tokenHash       String     @unique @map("token_hash") @db.Char(64)
+  /// Token cifrado (AES-256-GCM) para reconstruir o URL na listagem. Nulo em sessões legadas.
+  tokenEncrypted  String?    @map("token_encrypted") @db.VarChar(255)
+  expiresAt       DateTime   @map("expires_at")
+  revokedAt       DateTime?  @map("revoked_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  client          Client     @relation(fields: [clientId], references: [id])
+  createdByUser   User?      @relation(fields: [createdByUserId], references: [id])
+  documents       Document[]
+
+  @@index([clientId])
+  @@index([createdByUserId])
+  @@map("client_upload_sessions")
+}
+
+model DocumentStatusHistory {
+  id          String          @id @default(uuid())
+  documentId  String          @map("document_id")
+  fromStatus  DocumentStatus? @map("from_status")
+  toStatus    DocumentStatus  @map("to_status")
+  changedById String?         @map("changed_by_id")
+  note        String?         @db.Text
+  createdAt   DateTime        @default(now()) @map("created_at")
+  document    Document        @relation(fields: [documentId], references: [id])
+
+  @@index([documentId])
+  @@map("document_status_history")
+}
+
+model DocumentAssignment {
+  id         String   @id @default(uuid())
+  documentId String   @map("document_id")
+  userId     String   @map("user_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  document   Document @relation(fields: [documentId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([documentId, userId])
+  @@index([userId], map: "document_assignments_user_id_fkey")
+  @@map("document_assignments")
+}
+
+model DocumentRequest {
+  id          String    @id @default(uuid())
+  documentId  String    @map("document_id")
+  label       String    @db.VarChar(255)
+  description String?   @db.Text
+  required    Boolean   @default(true)
+  fulfilledAt DateTime? @map("fulfilled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  document    Document  @relation(fields: [documentId], references: [id])
+
+  @@index([documentId])
+  @@map("document_requests")
+}
+
+model DocumentFile {
+  id           String       @id @default(uuid())
+  documentId   String       @map("document_id")
+  originalName String       @map("original_name") @db.VarChar(255)
+  storageName  String       @map("storage_name") @db.VarChar(255)
+  mimeType     String       @map("mime_type") @db.VarChar(100)
+  size         Int
+  checksum     String       @db.VarChar(64)
+  storagePath  String       @map("storage_path") @db.VarChar(1000)
+  uploadedById String       @map("uploaded_by_id")
+  uploaderType UploaderType @map("uploader_type")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  deletedAt    DateTime?    @map("deleted_at")
+  document     Document     @relation(fields: [documentId], references: [id])
+
+  @@index([documentId])
+  @@map("document_files")
+}
+
+model MessageFile {
+  id           String   @id @default(uuid())
+  messageId    String   @map("message_id")
+  originalName String   @map("original_name") @db.VarChar(255)
+  storageName  String   @map("storage_name") @db.VarChar(255)
+  mimeType     String   @map("mime_type") @db.VarChar(100)
+  size         Int
+  checksum     String   @db.VarChar(64)
+  storagePath  String   @map("storage_path") @db.VarChar(1000)
+  createdAt    DateTime @default(now()) @map("created_at")
+  message      Message  @relation(fields: [messageId], references: [id])
+
+  @@index([messageId], map: "message_files_message_id_fkey")
+  @@map("message_files")
+}
+
+model TicketFile {
+  id           String   @id @default(uuid())
+  ticketId     String   @map("ticket_id")
+  originalName String   @map("original_name") @db.VarChar(255)
+  storageName  String   @map("storage_name") @db.VarChar(255)
+  mimeType     String   @map("mime_type") @db.VarChar(100)
+  size         Int
+  checksum     String   @db.VarChar(64)
+  storagePath  String   @map("storage_path") @db.VarChar(1000)
+  createdAt    DateTime @default(now()) @map("created_at")
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
+
+  @@index([ticketId], map: "ticket_files_ticket_id_fkey")
+  @@map("ticket_files")
+}
+
+model Message {
+  id         String        @id @default(uuid())
+  documentId String        @map("document_id")
+  senderId   String        @map("sender_id")
+  senderType SenderType    @map("sender_type")
+  content    String        @db.Text
+  isInternal Boolean       @default(false) @map("is_internal")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  deletedAt  DateTime?     @map("deleted_at")
+  files      MessageFile[]
+  document   Document      @relation(fields: [documentId], references: [id])
+
+  @@index([documentId])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model Ticket {
+  id          String          @id @default(uuid())
+  clientId    String          @map("client_id")
+  subject     String          @db.VarChar(255)
+  category    String          @db.VarChar(100)
+  description String          @db.Text
+  priority    TicketPriority  @default(NORMAL)
+  status      TicketStatus    @default(OPEN)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  deletedAt   DateTime?       @map("deleted_at")
+  files       TicketFile[]
+  messages    TicketMessage[]
+  client      Client          @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@index([status])
+  @@map("tickets")
+}
+
+model TicketMessage {
+  id         String     @id @default(uuid())
+  ticketId   String     @map("ticket_id")
+  senderId   String     @map("sender_id")
+  senderType SenderType @map("sender_type")
+  content    String     @db.Text
+  createdAt  DateTime   @default(now()) @map("created_at")
+  deletedAt  DateTime?  @map("deleted_at")
+  ticket     Ticket     @relation(fields: [ticketId], references: [id])
+
+  @@index([ticketId])
+  @@index([senderId])
+  @@map("ticket_messages")
+}
+
+model Notification {
+  id            String                    @id @default(uuid())
+  recipientId   String                    @map("recipient_id")
+  recipientType NotificationRecipientType @map("recipient_type")
+  type          String                    @db.VarChar(100)
+  title         String                    @db.VarChar(255)
+  body          String                    @db.Text
+  metadata      Json?
+  readAt        DateTime?                 @map("read_at")
+  createdAt     DateTime                  @default(now()) @map("created_at")
+
+  @@index([recipientId, recipientType])
+  @@map("notifications")
+}
+
+model EmailVerificationToken {
+  id          String    @id @default(uuid())
+  clientId    String    @map("client_id")
+  /// SHA-256 (hex) do token enviado por email.
+  tokenHash   String    @unique @map("token_hash") @db.Char(64)
+  otpHash     String?   @map("otp_hash") @db.Char(64)
+  otpAttempts Int       @default(0) @map("otp_attempts")
+  expiresAt   DateTime  @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId], map: "email_verification_tokens_client_id_fkey")
+  @@map("email_verification_tokens")
+}
+
+model ClientPasswordResetToken {
+  id          String    @id @default(uuid())
+  clientId    String    @map("client_id")
+  tokenHash   String    @unique @map("token_hash") @db.VarChar(64)
+  otpHash     String?   @map("otp_hash") @db.Char(64)
+  otpAttempts Int       @default(0) @map("otp_attempts")
+  expiresAt   DateTime  @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId], map: "client_password_reset_tokens_client_id_fkey")
+  @@map("client_password_reset_tokens")
+}
+
+model UserPasswordResetToken {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  tokenHash   String    @unique @map("token_hash") @db.VarChar(64)
+  otpHash     String?   @map("otp_hash") @db.Char(64)
+  otpAttempts Int       @default(0) @map("otp_attempts")
+  expiresAt   DateTime  @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "user_password_reset_tokens_user_id_fkey")
+  @@map("user_password_reset_tokens")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  clientId  String?  @map("client_id")
+  action    String   @db.VarChar(100)
+  entity    String?  @db.VarChar(100)
+  entityId  String?  @map("entity_id") @db.VarChar(36)
+  oldValues Json?    @map("old_values")
+  newValues Json?    @map("new_values")
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User?    @relation(fields: [userId], references: [id], map: "audit_logs_user_fk")
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Backup {
+  id          String       @id @default(uuid())
+  type        BackupType
+  status      BackupStatus @default(PENDING)
+  size        BigInt?
+  storagePath String?      @map("storage_path") @db.VarChar(1000)
+  checksum    String?      @db.VarChar(64)
+  createdById String?      @map("created_by_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  completedAt DateTime?    @map("completed_at")
+  logs        BackupLog[]
+
+  @@index([status])
+  @@map("backups")
+}
+
+model BackupLog {
+  id        String   @id @default(uuid())
+  backupId  String   @map("backup_id")
+  message   String   @db.Text
+  level     String   @db.VarChar(10)
+  createdAt DateTime @default(now()) @map("created_at")
+  backup    Backup   @relation(fields: [backupId], references: [id], onDelete: Cascade)
+
+  @@index([backupId], map: "backup_logs_backup_id_fkey")
+  @@map("backup_logs")
+}
+
+model Plan {
+  id            String               @id @default(uuid())
+  name          String               @db.VarChar(100)
+  badge         String?              @db.VarChar(100)
+  description   String               @db.Text
+  priceMonthly  Int?                 @map("price_monthly")
+  priceAnnual   Int?                 @map("price_annual")
+  currency      String               @default("AOA") @db.VarChar(3)
+  features      Json
+  ctaText       String               @map("cta_text") @db.VarChar(255)
+  isPopular     Boolean              @default(false) @map("is_popular")
+  isActive      Boolean              @default(true) @map("is_active")
+  sortOrder     Int                  @default(0) @map("sort_order")
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+  deletedAt     DateTime?            @map("deleted_at")
+  subscriptions ClientSubscription[]
+
+  @@map("plans")
+}
+
+model ContactRequest {
+  id        String               @id @default(uuid())
+  name      String               @db.VarChar(255)
+  email     String               @db.VarChar(255)
+  company   String?              @db.VarChar(255)
+  phone     String?              @db.VarChar(30)
+  message   String               @db.Text
+  status    ContactRequestStatus @default(NEW)
+  createdAt DateTime             @default(now()) @map("created_at")
+
+  @@index([status])
+  @@map("contact_requests")
+}
+
+model NewsletterSubscriber {
+  id             String    @id @default(uuid())
+  email          String    @unique @db.VarChar(255)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  unsubscribedAt DateTime? @map("unsubscribed_at")
+
+  @@map("newsletter_subscribers")
+}
+
+enum DocumentStatus {
+  DRAFT
+  SUBMITTED
+  IN_ANALYSIS
+  AWAITING_DOCUMENT
+  IN_PROCESSING
+  REPLIED
+  COMPLETED
+  CANCELLED
+  REJECTED
+  ARCHIVED
+}
+
+enum DocumentPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum UploaderType {
+  CLIENT
+  USER
+}
+
+enum SenderType {
+  CLIENT
+  USER
+  SYSTEM
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  AWAITING_CLIENT
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationRecipientType {
+  CLIENT
+  USER
+}
+
+enum BackupType {
+  FULL
+  INCREMENTAL
+}
+
+enum BackupStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCESS
+  FAILED
+}
+
+enum ContactRequestStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+model DocumentType {
+  id                String    @id @default(uuid())
+  code              String    @unique @db.VarChar(100)
+  name              String    @db.VarChar(255)
+  description       String?   @db.Text
+  category          String    @default("Geral") @db.VarChar(100)
+  required          Boolean   @default(true)
+  isActive          Boolean   @default(true) @map("is_active")
+  sortOrder         Int       @default(0) @map("sort_order")
+  allowedExtensions String?   @map("allowed_extensions") @db.VarChar(255)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  @@index([isActive])
+  @@index([category])
+  @@index([sortOrder])
+  @@map("document_types")
+}
+
+enum SessionSubjectType {
+  CLIENT
+  USER
+}
+
+/// Sessão de refresh token. O `id` é o `jti` do JWT de refresh; cada renovação
+/// revoga a sessão atual e cria uma nova na mesma família (rotação).
+model RefreshSession {
+  id           String             @id @db.VarChar(36)
+  familyId     String             @map("family_id") @db.VarChar(36)
+  subjectType  SessionSubjectType @map("subject_type")
+  subjectId    String             @map("subject_id") @db.VarChar(36)
+  expiresAt    DateTime           @map("expires_at")
+  revokedAt    DateTime?          @map("revoked_at")
+  replacedById String?            @map("replaced_by_id") @db.VarChar(36)
+  ipAddress    String?            @map("ip_address") @db.VarChar(45)
+  userAgent    String?            @map("user_agent") @db.VarChar(500)
+  createdAt    DateTime           @default(now()) @map("created_at")
+
+  @@index([subjectType, subjectId])
+  @@index([familyId])
+  @@map("refresh_sessions")
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  SUSPENDED
+  CANCELLED
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUAL
+}
+
+/// Subscrição de um cliente a um plano. Valores em AOA (kwanzas inteiros).
+model ClientSubscription {
+  id               String             @id @default(uuid())
+  clientId         String             @map("client_id")
+  planId           String             @map("plan_id")
+  status           SubscriptionStatus @default(ACTIVE)
+  billingCycle     BillingCycle       @default(MONTHLY) @map("billing_cycle")
+  amount           Int
+  currency         String             @default("AOA") @db.VarChar(3)
+  startDate        DateTime           @map("start_date")
+  currentPeriodEnd DateTime           @map("current_period_end")
+  cancelledAt      DateTime?          @map("cancelled_at")
+  notes            String?            @db.VarChar(1000)
+  createdById      String?            @map("created_by_id")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  client           Client             @relation(fields: [clientId], references: [id])
+  plan             Plan               @relation(fields: [planId], references: [id])
+  createdBy        User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@index([planId])
+  @@index([status])
+  @@map("client_subscriptions")
+}
+
+/// Configuração do servidor de email (linha única, id = "default").
+model EmailSettings {
+  id                String   @id @default("default") @db.VarChar(20)
+  provider          String   @default("SMTP") @db.VarChar(20)
+  host              String   @db.VarChar(255)
+  port              Int
+  secure            Boolean  @default(false)
+  username          String?  @db.VarChar(255)
+  /// Senha cifrada (AES-256-GCM). Nunca devolvida pela API.
+  passwordEncrypted String?  @map("password_encrypted") @db.VarChar(1024)
+  fromName          String   @map("from_name") @db.VarChar(255)
+  fromEmail                   String   @map("from_email") @db.VarChar(255)
+  isEnabled                   Boolean  @default(true) @map("is_enabled")
+  otpEnabled                  Boolean  @default(true) @map("otp_enabled")
+  verificationExpiresHours    Int      @default(24) @map("verification_expires_hours")
+  passwordResetExpiresMinutes Int      @default(15) @map("password_reset_expires_minutes")
+  updatedById                 String?  @map("updated_by_id") @db.VarChar(36)
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("email_settings")
+}

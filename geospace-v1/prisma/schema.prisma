@@ -1,0 +1,142 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ============================================
+// MODELOS DE USUÁRIO & ACESSO (RBAC)
+// ============================================
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   // SUPER_ADMIN, ADMIN_REGIONAL, OPERADOR_CISP, COORDENADOR_EMPRESA, AGENTE_CAMPO
+  permissions String?  // JSON string com flags de acesso específicas (ex: "['VIEW_MAP', 'MANAGE_UNITS']")
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Incidents Incident[] @relation("Reporter")
+}
+
+// ============================================
+// LAYER 01 - UNIDADES (UNIT)
+// ============================================
+
+model Unit {
+  id              String   @id @default(uuid())
+  code            String   @unique // Ex: GF-001
+  name            String
+  type            String   // FRONTEIRA, AGENCIA, ESTRATEGICA, PRIVADA
+  lat             Float
+  lng             Float
+  status          String   @default("OPERACIONAL") // OPERACIONAL, DEGRADADO, INATIVO
+  sector          String
+  agentsCount     Int      @default(0)
+  lastUpdate      DateTime @default(now())
+}
+
+// ============================================
+// LAYER 02 - VIAS DE ACESSO (ROAD)
+// ============================================
+
+model Road {
+  id          String   @id @default(uuid())
+  code        String   @unique // Ex: VIA-N1
+  name        String
+  type        String   // PRINCIPAL, SECUNDARIA, ALTERNATIVA
+  geometry    String   // Armazenado como JSON String (Coordenadas array)
+  status      String   @default("BOA") // BOA, DEGRADADA, BLOQUEADA
+  length      String?
+  maxSpeed    Int      @default(60)
+  lastUpdate  DateTime @default(now())
+}
+
+// ============================================
+// LAYER 03 - DENSIDADE (DENSITY)
+// ============================================
+
+model DensityPoint {
+  id             String   @id @default(uuid())
+  name           String
+  lat            Float
+  lng            Float
+  densityValue   Int      @default(0) // 0-100
+  populationCount Int     @default(0)
+  classification String   // CRITICA, ALTA, MODERADA, BAIXA
+  riskScore      Int      @default(0)
+  updatedAt      DateTime @default(now())
+}
+
+// ============================================
+// LAYER 04 & 05 - TRÁFEGO & INCIDENTES
+// ============================================
+
+model Incident {
+  id          String   @id @default(uuid())
+  code        String   @unique // INC-2025-XXX
+  title       String
+  type        String   // SEGURANCA, ACIDENTE, INCENDIO, OPERACIONAL, CIVIL
+  status      String   @default("ATIVO") // ATIVO, EM_PROGRESSO, RESOLVIDO
+  lat         Float
+  lng         Float
+  location    String
+  priority    String   // ALTA, MEDIA, BAIXA
+  description String?
+  reporter    User?    @relation("Reporter", fields: [reporterId], references: [id])
+  reporterId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TrafficUpdate {
+  id          String   @id @default(uuid())
+  roadId      String
+  avgSpeed    Int
+  vehicles    Int
+  delay       String?
+  status      String   // FLUIDO, LENTO, CONGESTIONADO, PARADO
+  updatedAt   DateTime @default(now())
+}
+
+// ============================================
+// LAYER 06 - AUDITORIA (AUDIT)
+// ============================================
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  userName    String?
+  action      String   // LOGIN, LOGOUT, CREATE, UPDATE, DELETE, EXPORT
+  resource    String   // USER, UNIT, INCIDENT, ROAD, REPORT
+  resourceId  String?
+  details     String?  // JSON stringified details
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+}
+
+// ============================================
+// LAYER 07 - OPERAÇÕES (TRIPS)
+// ============================================
+
+model Trip {
+  id              String   @id @default(uuid())
+  driverName      String
+  passengerName   String?
+  origin          String
+  destination     String
+  status          String   @default("COMPLETO") // COMPLETO, EM_ANDAMENTO, CANCELADO
+  value           Float?   @default(0) // Kz
+  startTime       DateTime @default(now())
+  endTime         DateTime?
+  unitId          String?
+}

@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String     @id @default(uuid())
+  name        String
+  email       String     @unique
+  password    String
+  role        String
+  permissions String?
+  status      String     @default("ACTIVE")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  lat         Float?     @default(-12.1642)
+  lng         Float?     @default(17.5691)
+  Incidents   Incident[] @relation("Reporter")
+}
+
+model School {
+  id             String   @id @default(uuid())
+  name           String
+  code           String   @unique
+  level          String
+  lat            Float
+  lng            Float
+  studentsCount  Int      @default(0)
+  teachersCount  Int      @default(0)
+  passRate       Float    @default(0)
+  failRate       Float    @default(0)
+  dropoutRate    Float    @default(0)
+  infrastructure String?
+  province       String
+  municipality   String
+  commune        String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Hospital {
+  id              String   @id @default(uuid())
+  name            String
+  code            String   @unique
+  type            String
+  lat             Float
+  lng             Float
+  bedCapacity     Int      @default(0)
+  currentPatients Int      @default(0)
+  births          Int      @default(0)
+  deaths          Int      @default(0)
+  commonDiseases  String?
+  province        String
+  municipality    String
+  commune         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model DemographicData {
+  id              String   @id @default(uuid())
+  regionName      String
+  regionType      String
+  totalPopulation Int      @default(0)
+  density         Float    @default(0)
+  growthRate      Float    @default(0)
+  agePyramid      String?
+  birthRate       Float    @default(0)
+  lat             Float
+  lng             Float
+  province        String?
+  municipality    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Incident {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  title        String
+  type         String
+  status       String   @default("ATIVO")
+  lat          Float
+  lng          Float
+  location     String
+  priority     String
+  description  String?
+  reporterId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  crimeRate    Float?   @default(0)
+  municipality String?
+  province     String?
+  reporter     User?    @relation("Reporter", fields: [reporterId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  userName   String?
+  action     String
+  resource   String
+  resourceId String?
+  details    String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+}

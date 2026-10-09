@@ -1,0 +1,76 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import Index from "./pages/Index";
+import VehicleDetail from "./pages/VehicleDetail";
+import EnergyDetail from "./pages/EnergyDetail";
+import Charging from "./pages/Charging";
+import Shop from "./pages/Shop";
+import DemoDrive from "./pages/DemoDrive";
+import FindUs from "./pages/FindUs";
+import Events from "./pages/Events";
+import News from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
+import Contact from "./pages/Contact";
+import CookiePolicy from "./pages/CookiePolicy";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            
+            {/* Vehicle Routes */}
+            <Route path="/vehicles/:vehicleId" element={<VehicleDetail />} />
+            
+            {/* Energy Routes */}
+            <Route path="/energy/:productId" element={<EnergyDetail />} />
+            
+            {/* Charging */}
+            <Route path="/charging" element={<Charging />} />
+            <Route path="/charging/:section" element={<Charging />} />
+            
+            {/* Shop */}
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/:category" element={<Shop />} />
+            
+            {/* Discover Routes */}
+            <Route path="/discover/demo-drive" element={<DemoDrive />} />
+            <Route path="/discover/find-us" element={<FindUs />} />
+            <Route path="/discover/events" element={<Events />} />
+            
+            {/* News */}
+            <Route path="/news" element={<News />} />
+            <Route path="/news/:slug" element={<NewsDetail />} />
+            
+            {/* Contact */}
+            <Route path="/contact" element={<Contact />} />
+            
+            {/* Legal */}
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
+            <Route path="/privacy" element={<NotFound />} />
+            <Route path="/terms" element={<NotFound />} />
+            
+            {/* Account - placeholder */}
+            <Route path="/account" element={<NotFound />} />
+            
+            {/* Catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
+);
+
+export default App;

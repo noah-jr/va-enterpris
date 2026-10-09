@@ -1,0 +1,174 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  --color-background: #fafafa;
+  --color-panel: #ffffff;
+  --color-panel-hover: #f4f4f5;
+  --color-border: #e4e4e7;
+  --color-border-subtle: #f4f4f5;
+  --color-primary: #18181b;
+  --color-primary-hover: #09090b;
+  --color-primary-light: #f4f4f5;
+  --color-text: #09090b;
+  --color-text-muted: #71717a;
+  --color-text-subtle: #a1a1aa;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-full: 0px;
+}
+
+/* Strict global removal of border-radius across the client application */
+*, ::before, ::after {
+  border-radius: 0px !important;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  
+  html.dark {
+    color-scheme: dark;
+    --color-background: #09090b;
+    --color-panel: #18181b;
+    --color-panel-hover: #27272a;
+    --color-border: #27272a;
+    --color-border-subtle: #27272a;
+    --color-primary: #ffffff;
+    --color-primary-hover: #f4f4f5;
+    --color-primary-light: #27272a;
+    --color-text: #f4f4f5;
+    --color-text-muted: #a1a1aa;
+    --color-text-subtle: #71717a;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Custom crisp scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #fafafa;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #e4e4e7;
+    border-radius: 0px !important;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a1a1aa;
+  }
+
+  html.dark ::-webkit-scrollbar-track {
+    background: #09090b;
+  }
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #27272a;
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--color-border);
+  }
+
+  html.dark .glass {
+    background: rgba(24, 24, 27, 0.85);
+    border: 1px solid #27272a;
+  }
+
+  .card-fintech {
+    background-color: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 0px !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    transition: all 0.15s ease-in-out;
+  }
+
+  .card-fintech:hover {
+    border-color: #d4d4d8;
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.04);
+  }
+
+  html.dark .card-fintech:hover {
+    border-color: #3f3f46;
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .btn-dark {
+    background-color: #09090b;
+    color: #ffffff;
+    border-radius: 0px !important;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+  }
+  .btn-dark:hover {
+    background-color: #27272a;
+    box-shadow: 0 2px 6px rgba(9, 9, 11, 0.12);
+  }
+
+  html.dark .btn-dark {
+    background-color: #ffffff;
+    color: #09090b;
+  }
+  html.dark .btn-dark:hover {
+    background-color: #f4f4f5;
+  }
+
+  .btn-light {
+    background-color: #ffffff;
+    color: #09090b;
+    border: 1px solid #e4e4e7;
+    border-radius: 0px !important;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+  }
+  .btn-light:hover {
+    background-color: #f4f4f5;
+    border-color: #d4d4d8;
+  }
+
+  html.dark .btn-light {
+    background-color: #18181b;
+    color: #f4f4f5;
+    border-color: #27272a;
+  }
+
+  .card-gradient-purple {
+    background: #18181b;
+    color: #ffffff;
+    border: 1px solid #27272a;
+  }
+
+  .card-gradient-warm {
+    background: #27272a;
+    color: #ffffff;
+    border: 1px solid #3f3f46;
+  }
+}

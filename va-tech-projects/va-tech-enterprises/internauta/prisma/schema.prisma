@@ -1,0 +1,342 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String        @id @default(cuid())
+  name             String?
+  email            String        @unique
+  password         String
+  image            String?
+  role             String        @default("ADMIN")
+  deleted          Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  otp              String?
+  otpExpires       DateTime?
+  auditLogs        AuditLog[]
+  receivedMessages ChatMessage[] @relation("ReceivedMessages")
+  sentMessages     ChatMessage[] @relation("SentMessages")
+  posts            Post[]
+  chats            Chat[]        @relation("UserChats")
+  sectors          Sector[]      @relation("UserSectors")
+}
+
+model Sector {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  @db.Text
+  icon        String?
+  active      Boolean  @default(true)
+  deleted     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]   @relation("UserSectors")
+}
+
+model Chat {
+  id        String        @id @default(cuid())
+  title     String?
+  isGroup   Boolean       @default(false)
+  deleted     Boolean       @default(false)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  guestId   String?
+  messages  ChatMessage[]
+  users     User[]        @relation("UserChats")
+}
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  content        String   @db.Text
+  senderId       String?
+  receiverId     String?
+  chatId         String
+  read           Boolean  @default(false)
+  deleted        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  attachmentType String?
+  attachmentUrl  String?  @db.Text
+  chat           Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  receiver       User?    @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender         User?    @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@index([chatId], map: "ChatMessage_chatId_fkey")
+  @@index([receiverId], map: "ChatMessage_receiverId_fkey")
+  @@index([senderId], map: "ChatMessage_senderId_fkey")
+}
+
+model Service {
+  id              String           @id @default(cuid())
+  slug            String           @unique
+  title           String
+  description     String           @db.Text
+  longDescription String?          @db.LongText
+  category        String           @default("Outros")
+  icon            String
+  image           String?
+  active          Boolean          @default(true)
+  deleted         Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  features        ServiceFeature[]
+}
+
+model ServiceFeature {
+  id        String  @id @default(cuid())
+  text      String  @db.Text
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  deleted   Boolean  @default(false)
+
+  @@index([serviceId], map: "ServiceFeature_serviceId_fkey")
+}
+
+model Post {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  excerpt    String?  @db.Text
+  content    String   @db.LongText
+  coverImage String?
+  videoUrl   String?
+  authorId   String
+  published  Boolean  @default(false)
+  deleted    Boolean  @default(false)
+  tags       String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  author     User     @relation(fields: [authorId], references: [id])
+  comments   Comment[]
+  likes      PostLike[]
+
+  @@index([authorId], map: "Post_authorId_fkey")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String   @db.Text
+  content     String?  @db.LongText
+  category    String
+  image       String?
+  gallery     String?  @db.Text
+  client      String?
+  year        String?
+  link        String?
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  deleted     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Contact {
+  id            String   @id @default(cuid())
+  name          String
+  email         String
+  phone         String?
+  subject       String?
+  message       String   @db.Text
+  status        String   @default("NEW")
+  adminResponse String?  @db.Text
+  deleted       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  active    Boolean  @default(true)
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  link      String?
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  page      String
+  pageType  String
+  pageId    String?
+  ipAddress String?
+  userAgent String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([pageType, createdAt])
+  @@index([pageId, createdAt])
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  image     String?
+  bio       String?  @db.Text
+  linkedin  String?
+  email     String?
+  active    Boolean  @default(true)
+  deleted   Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  company   String?
+  content   String   @db.Text
+  image     String?
+  rating    Int      @default(5)
+  active    Boolean  @default(true)
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  details   String?  @db.Text
+  userId    String?
+  createdAt DateTime @default(now())
+  ipAddress String?
+  user      User?    @relation(fields: [userId], references: [id])
+  deleted   Boolean  @default(false)
+
+  @@index([userId], map: "AuditLog_userId_fkey")
+}
+
+model WhatsAppConfig {
+  id          String   @id @default(cuid())
+  phoneNumber String   @unique
+  sector      String
+  botName     String?
+  isActive    Boolean  @default(true)
+  deleted     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BotRule {
+  id        String   @id @default(cuid())
+  trigger   String
+  response  String   @db.Text
+  sector    String?
+  active    Boolean  @default(true)
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  type        String
+  clientName  String
+  clientEmail String?
+  amount      Float    @default(0)
+  status      String   @default("GENERATED")
+  data        String   @db.Text
+  deleted     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Partner {
+  id        String   @id @default(cuid())
+  name      String
+  logo      String?
+  link      String?
+  active    Boolean  @default(true)
+  deleted   Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Internauta {
+  id              String   @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String   @unique
+  password        String?  // New: for Internauta area access
+  phone           String?
+  birthDate       DateTime?
+  gender          String?
+  image           String?  // New: Avatar
+  address         String?  @db.Text
+  city            String?
+  country         String?  @default("Angola")
+  postalCode      String?
+  occupation      String?
+  company         String?
+  interests       String?  @db.Text
+  howDidYouHear   String?
+  newsletter      Boolean  @default(true)
+  termsAccepted   Boolean  @default(true)
+  status          String   @default("ACTIVE")
+  notes           String?  @db.Text
+  deleted         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Auth & Recovery
+  resetToken      String?
+  resetTokenExpiry DateTime?
+  googleId        String?
+  facebookId      String?
+  linkedinId      String?
+
+  // Relationships
+  comments        Comment[]
+  likes           PostLike[]
+}
+
+model Comment {
+  id           String     @id @default(cuid())
+  content      String     @db.Text
+  postId       String
+  post         Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  internautaId String
+  internauta   Internauta @relation(fields: [internautaId], references: [id], onDelete: Cascade)
+  deleted      Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([postId])
+  @@index([internautaId])
+}
+
+model PostLike {
+  id           String     @id @default(cuid())
+  postId       String
+  post         Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  internautaId String
+  internauta   Internauta @relation(fields: [internautaId], references: [id], onDelete: Cascade)
+  deleted      Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@unique([postId, internautaId])
+  @@index([postId])
+  @@index([internautaId])
+}

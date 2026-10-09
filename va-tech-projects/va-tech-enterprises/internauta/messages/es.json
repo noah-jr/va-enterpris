@@ -1,0 +1,125 @@
+{
+  "home": {
+    "hero": {
+      "title": "Tecnología, Seguridad y Marketing en un Solo Lugar",
+      "subtitle": "Soluciones completas para impulsar su negocio en el mundo digital"
+    },
+    "services": {
+      "title": "Nuestros Servicios",
+      "subtitle": "Ofrecemos soluciones completas en tecnología, seguridad y marketing digital"
+    },
+    "stats": {
+      "visitors": "Visitantes",
+      "rating": "de Valoración",
+      "sales": "Ventas Realizadas",
+      "leads": "Leads Generados"
+    },
+    "cta": {
+      "contact": "Contactar",
+      "services": "Ver Servicios",
+      "learnMore": "Saber Más"
+    }
+  },
+  "services": {
+    "infrastructure": {
+      "title": "Infraestructura de Redes",
+      "description": "Planificación, instalación y mantenimiento de redes informáticas para garantizar estabilidad, velocidad y rendimiento de su empresa."
+    },
+    "cybersecurity": {
+      "title": "Ciberseguridad",
+      "description": "Protección de datos, sistemas y redes contra ataques, virus y accesos no autorizados, garantizando seguridad y confianza."
+    },
+    "cctv": {
+      "title": "CCTV",
+      "description": "Sistema de videovigilancia para monitoreo 24H, aumentando la seguridad de empresas, residencias e instalaciones."
+    },
+    "digitalMarketing": {
+      "title": "Marketing Digital",
+      "description": "Estrategias digitales para aumentar la visibilidad de su marca y atraer más clientes online."
+    },
+    "paidTraffic": {
+      "title": "Tráfico Pagado",
+      "description": "Creación y gestión de anuncios pagados para generar resultados rápidos, leads calificados y aumento de ventas."
+    },
+    "socialMedia": {
+      "title": "Gestión de Redes Sociales",
+      "description": "Planificación, creación de contenidos y gestión de redes sociales para mejorar la relación con clientes y la imagen de marca."
+    },
+    "hardware": {
+      "title": "Venta de Materiales Informáticos",
+      "description": "Suministro de equipos y accesorios informáticos de calidad para atender las necesidades de su negocio."
+    },
+    "webDevelopment": {
+      "title": "Desarrollo de Sitios Web",
+      "description": "Creación de sitios web modernos, responsivos y profesionales para fortalecer la presencia digital de su empresa."
+    }
+  },
+  "navigation": {
+    "home": "Inicio",
+    "services": "Servicios",
+    "blog": "Blog",
+    "about": "Acerca de",
+    "contact": "Contacto"
+  },
+  "footer": {
+    "company": "Empresa",
+    "services": "Servicios",
+    "legal": "Legal",
+    "followUs": "Síguenos",
+    "allRightsReserved": "Todos los derechos reservados",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos de Servicio",
+    "cookiePolicy": "Política de Cookies"
+  },
+  "contact": {
+    "title": "Contactar",
+    "subtitle": "Estamos aquí para ayudar. Contáctenos",
+    "form": {
+      "name": "Nombre Completo",
+      "email": "Email",
+      "phone": "Teléfono",
+      "subject": "Asunto",
+      "message": "Mensaje",
+      "send": "Enviar Mensaje",
+      "success": "¡Mensaje enviado con éxito!",
+      "error": "Error al enviar mensaje. Inténtelo de nuevo."
+    }
+  },
+  "newsletter": {
+    "title": "Suscríbase a Nuestro Newsletter",
+    "subtitle": "Reciba las últimas noticias y actualizaciones",
+    "placeholder": "Ingrese su email",
+    "subscribe": "Suscribirse",
+    "success": "¡Suscripción realizada con éxito!",
+    "error": "Error al suscribirse. Inténtelo de nuevo."
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Artículos y noticias sobre tecnología, seguridad y marketing",
+    "readMore": "Leer Más",
+    "readTime": "min de lectura",
+    "publishedOn": "Publicado el",
+    "relatedPosts": "Artículos Relacionados"
+  },
+  "about": {
+    "title": "Acerca de Nosotros",
+    "subtitle": "Conozca VA - Tecnología, Seguridad y Marketing"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar"
+  }
+}

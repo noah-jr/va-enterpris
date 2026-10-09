@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  ADMIN
+  CLIENTE
+  ORGANIZADOR
+}
+
+enum EventStatus {
+  PENDENTE
+  ATIVO
+  PUBLICADO
+  CANCELADO
+  ENCERRADO
+}
+
+enum OrderStatus {
+  PENDENTE
+  PAGO
+  CANCELADO
+}
+
+enum TicketStatus {
+  VALIDO
+  UTILIZADO
+  CANCELADO
+}
+
+model User {
+  id            String    @id @default(uuid())
+  nome          String
+  email         String    @unique
+  password      String
+  role          UserRole  @default(CLIENTE)
+  status        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orders        Order[]
+  notifications Notification[]
+  messagesSent     Message[] @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+  comments      Comment[]
+  logs          Log[]
+  auditLogs     AuditLog[]
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  titulo      String
+  descricao   String      @db.Text
+  data        DateTime
+  local       String
+  vagas       Int
+  image_url   String?     @db.Text
+  preco_min   Decimal?    @db.Decimal(10, 2)
+  status      EventStatus @default(PENDENTE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tickets     TicketType[]
+}
+
+model TicketType {
+  id          String   @id @default(uuid())
+  event_id    String
+  event       Event    @relation(fields: [event_id], references: [id])
+  tipo        String   // VIP, Normal, Estudante
+  preco       Decimal  @db.Decimal(10, 2)
+  quantidade  Int
+  
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  user_id         String
+  user            User        @relation(fields: [user_id], references: [id])
+  total           Decimal     @db.Decimal(10, 2)
+  status          OrderStatus @default(PENDENTE)
+  metodo_pagamento String
+  createdAt       DateTime    @default(now())
+
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id            String       @id @default(uuid())
+  order_id      String
+  order         Order        @relation(fields: [order_id], references: [id])
+  ticket_id     String
+  ticket        TicketType   @relation(fields: [ticket_id], references: [id])
+  qr_code       String       @unique
+  status        TicketStatus @default(VALIDO)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  user_id   String
+  user      User     @relation(fields: [user_id], references: [id])
+  tipo      String
+  mensagem  String
+  lida      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  sender_id   String
+  sender      User     @relation("SentMessages", fields: [sender_id], references: [id])
+  receiver_id String
+  receiver    User     @relation("ReceivedMessages", fields: [receiver_id], references: [id])
+  mensagem    String   @db.Text
+  lida        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  user_id   String?
+  user      User?    @relation(fields: [user_id], references: [id])
+  acao      String
+  data      DateTime @default(now())
+  ip        String?
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  user_id       String
+  user          User     @relation(fields: [user_id], references: [id])
+  acao          String
+  data      DateTime @default(now())
+  ip            String?
+  antes_depois  Json?
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model BlogPost {
+  id        String    @id @default(uuid())
+  titulo    String
+  conteudo  String    @db.LongText
+  image_url String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  comments  Comment[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  post_id   String
+  post      BlogPost @relation(fields: [post_id], references: [id])
+  user_id   String
+  user      User     @relation(fields: [user_id], references: [id])
+  conteudo  String   @db.Text
+  createdAt DateTime @default(now())
+}

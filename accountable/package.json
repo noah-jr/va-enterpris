@@ -1,0 +1,31 @@
+{
+  "name": "accountable",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Plataforma de Tramitação de Documentos",
+  "scripts": {
+    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "build": "pnpm --filter './packages/*' build && pnpm --filter './apps/*' build",
+    "typecheck": "pnpm --recursive typecheck",
+    "test": "pnpm --recursive test",
+    "test:unit": "pnpm --filter api test",
+    "test:integration": "pnpm --filter api test:integration",
+    "test:e2e": "playwright test",
+    "test:all": "pnpm typecheck && pnpm test:unit && pnpm test:integration && pnpm test:e2e"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

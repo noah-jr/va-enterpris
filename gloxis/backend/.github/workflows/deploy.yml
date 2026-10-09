@@ -1,0 +1,110 @@
+name: Deploy AdonisJS Backend
+
+on:
+  push:
+    branches:
+      - deploy
+  pull_request:
+    branches:
+      - deploy
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_PATH: /var/www/gloxis/api
+      NODE_VERSION: 22
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Build AdonisJS Application
+      run: npm run build
+
+    - name: Prepare Deployment Payload
+      run: |
+        echo "📦 Creating deploy payload directory..."
+        mkdir -p deploy_payload
+        
+        # Copy only the necessary files for production
+        cp -r build deploy_payload/
+        cp ecosystem.config.cjs deploy_payload/
+        cp package.json deploy_payload/
+        cp package-lock.json deploy_payload/
+        
+        echo "⚙️ Setting up environment variables in build folder..."
+        if [ -f .env.production ]; then
+          cp .env.production deploy_payload/build/.env
+          echo ".env.production copiado com sucesso."
+        else
+          touch deploy_payload/build/.env
+          echo "Criado ficheiro .env vazio."
+        fi
+
+        echo "✅ Ambiente preparado."
+
+    - name: Install SSH tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openssh-client sshpass rsync
+
+    - name: Sync Payload to VPS
+      env:
+        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+      run: |
+        echo "🔄 Syncing build to VPS..."
+        sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" "mkdir -p $APP_PATH"
+        
+        sshpass -p "$VPS_PASSWORD" rsync -avz --delete \
+          -e "ssh -o StrictHostKeyChecking=no" \
+          deploy_payload/ "$VPS_USER@$VPS_HOST:$APP_PATH"
+
+    - name: Deploy & Restart on VPS
+      env:
+        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+      run: |
+        sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST << EOF
+          cd $APP_PATH
+
+          if ! command -v node >/dev/null 2>&1; then
+            echo "Installing NodeJS for Almalinux..."
+            curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash -
+            sudo dnf install -y nodejs
+          fi
+          
+          if ! command -v pm2 >/dev/null 2>&1; then
+            echo "Installing PM2..."
+            sudo npm install -g pm2 
+          fi
+
+          echo "📦 Installing production dependencies..."
+          cd build
+          npm ci --legacy-peer-deps --omit=dev
+          
+          echo "🗄️ Running Database Migrations..."
+          node ace.js migration:run --force
+          cd ..
+          
+          export NODE_PATH=\$(npm root -g)
+
+          echo "♻️ Restarting Backend with PM2..."
+          pm2 reload ecosystem.config.cjs || pm2 start ecosystem.config.cjs
+          pm2 save
+
+          echo "✅ Deploy concluído com sucesso!"
+        EOF

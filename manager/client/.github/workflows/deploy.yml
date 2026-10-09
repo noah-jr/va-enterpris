@@ -1,0 +1,77 @@
+name: SAAS-CLIENT
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_PATH: /var/www/saas-client
+      NODE_VERSION: 22
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Create .env.production
+        run: |
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env.production
+          echo "VITE_SOCKET_URL=${{ secrets.VITE_SOCKET_URL }}" >> .env.production
+          echo "VITE_ENV=production" >> .env.production
+
+      - name: Install & Build Client
+        # O build deve ser feito aqui para poupar os recursos do VPS
+        run: |
+          npm install --legacy-peer-deps
+          npm run build
+
+      - name: Install Deployment Tools
+        run: sudo apt-get update && sudo apt-get install -y sshpass rsync
+
+      - name: Deploy to VPS (RSYNC)
+        env:
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          echo "📦 Syncing client files..."
+          # Enviamos os ficheiros compilados. 
+          # IMPORTANTE: Não excluímos pastas de build (como .next ou dist)
+          sshpass -p "$VPS_PASSWORD" rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            --exclude=".git" \
+            --exclude=".github" \
+            --exclude="node_modules" \
+            --exclude=".env" \
+            --exclude="src" \
+            . "$VPS_USER@$VPS_HOST:$APP_PATH"
+
+      - name: Remote Post-Deploy
+        env:
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" << EOF
+            cd $APP_PATH
+            
+            echo "📦 Installing production dependencies..."
+            # --omit=dev evita instalar pacotes desnecessários no VPS
+            npm install --omit=dev --legacy-peer-deps
+
+            echo "♻️ Restarting client process..."
+            # Tenta dar reload; se não existir, inicia usando o ficheiro de config
+            pm2 reload "SAAS::CLIENT" || pm2 start ecosystem.config.cjs --name "SAAS::CLIENT"
+            pm2 save
+
+            echo "✅ Deploy concluído com sucesso!"
+          EOF

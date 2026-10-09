@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  # MinIO removido - agora usando Cloudinary para upload de arquivos
+  # Para usar Cloudinary, configure as variáveis de ambiente no .env:
+  # NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+  # CLOUDINARY_API_KEY
+  # CLOUDINARY_API_SECRET
+
+volumes:
+  # minio_data removido
+

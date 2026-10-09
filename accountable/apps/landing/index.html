@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="VA OneGest — Plataforma B2B para receber, organizar e tratar os documentos dos seus clientes com total segurança e um histórico completo de cada processo."
+    />
+    <meta property="og:title" content="VA OneGest — Tramitação e Custódia Documental B2B" />
+    <meta
+      property="og:description"
+      content="Plataforma empresarial para gerir o fluxo de documentos dos seus clientes, com segurança de ponta a ponta e conformidade com o RGPD."
+    />
+    <meta property="og:type" content="website" />
+    <link
+      rel="preload"
+      href="/fonts/poppins/Poppins-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/poppins/Poppins-500.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/poppins/Poppins-600.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <title>VA OneGest — Tramitação Documental B2B & Custódia Digital</title>
+    <script>
+      (function () {
+        var stored = localStorage.getItem('accountable-theme');
+        var theme = stored === 'light' ? 'light' : 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-brand-500 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

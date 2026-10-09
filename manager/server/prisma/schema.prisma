@@ -1,0 +1,1244 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                 String               @id @default(uuid())
+  name               String
+  nif                String               @unique
+  address            String?
+  logo               String?
+  capitalSocial      Float?               @default(0)
+  registryOffice     String?
+  email              String?
+  phone              String?
+  createdAt          DateTime             @default(now())
+  deletedAt         DateTime?
+  updatedAt          DateTime             @updatedAt
+  expiresAt          DateTime?
+  status             String               @default("PENDING")
+  enabledModules     String[]             @default([])
+  approvalRequests   ApprovalRequest[]
+  assets             Asset[]
+  auditLogs          AuditLog[]
+  bankAccounts       BankAccount[]
+  budgetLines        BudgetLine[]
+  calendarEvents     CalendarEvent[]
+  candidates         Candidate[]
+  clients            Client[]
+  contracts          Contract[]
+  documents          Document[]
+  employees          Employee[]
+  expenses           ExpenseClaim[]
+  financialEntries   FinancialEntry[]
+  fleetVehicles      FleetVehicle[]
+  incidents          HSEIncident[]
+  invoices           Invoice[]
+  kpis               KPIIndicator[]
+  markets            Market[]
+  marketingCampaigns MarketingCampaign[]
+  messages           Message[]
+  posSales           POSSale[]
+  posTerminals       POSTerminal[]
+  payrolls           Payroll[]
+  products           Product[]
+  productionOrders   ProductionOrder[]
+  projects           Project[]
+  purchaseOrders     PurchaseOrder[]
+  quality            QualityInspection[]
+  risks              Risk[]
+  roles              Role[]
+  objectives         StrategicObjective[]
+  subscriptions      Subscription[]
+  suppliers          Supplier[]
+  courses            TrainingCourse[]
+  transports         Transport[]
+  stockMovements     StockMovement[]
+  users              User[]
+  supportTickets       SupportTicket[]
+  subscriptionRequests SubscriptionRequest[]
+  notifications        AppNotification[]
+  posSessions          POSSession[]
+  accountingCases      AccountingCase[]
+  journalEntries       JournalEntry[]
+  chartOfAccounts      ChartOfAccount[]
+}
+
+
+model MarketingCampaign {
+  id          String   @id @default(uuid())
+  companyId   String
+  title       String
+  platform    String   @default("MULTICANAL")
+  status      String   @default("ACTIVE")
+  budget      Float    @default(0)
+  engagement  Float    @default(0)
+  description String?
+  createdAt   DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model User {
+  id                String     @id @default(uuid())
+  companyId         String
+  name              String
+  email             String     @unique
+  password          String
+  role              String     @default("USER")
+  roleId            String?
+  isActive          Boolean    @default(false)
+  verificationToken String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  twoFactorEnabled  Boolean    @default(false)
+  twoFactorSecret   String?
+  createdAt         DateTime   @default(now())
+  deletedAt         DateTime?
+  updatedAt         DateTime   @updatedAt
+  auditLogs         AuditLog[]
+  company           Company         @relation(fields: [companyId], references: [id])
+  roleData          Role?           @relation(fields: [roleId], references: [id])
+  supportTickets    SupportTicket[]
+  ticketMessages    TicketMessage[]
+  accountingMessages AccountingCaseMessage[]
+  @@index([companyId])
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  companyId   String?
+  name        String
+  description String?
+  company     Company?     @relation(fields: [companyId], references: [id])
+  users       User[]
+  permissions Permission[] @relation("PermissionToRole")
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model Permission {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  roles       Role[]  @relation("PermissionToRole")
+}
+
+model Employee {
+  id               String    @id @default(uuid())
+  companyId        String
+  name             String
+  email            String?
+  phone            String?
+  position         String?
+  department       String?
+  salary           Float?
+  bi               String?
+  contractType     String?
+  hireDate         DateTime  @default(now())
+  status           String    @default("ACTIVE")
+  documents        String?
+  photoUrl         String?
+  emergencyContact String?
+  emergencyPhone   String?
+  municipality     String?
+  province         String?
+  createdAt        DateTime  @default(now())
+  deletedAt         DateTime?
+  updatedAt        DateTime  @updatedAt
+  company          Company   @relation(fields: [companyId], references: [id])
+  payrolls         Payroll[]
+  @@index([companyId])
+}
+
+
+
+model Transport {
+  id            String    @id @default(uuid())
+  companyId     String
+  fleetVehicleId String?
+  driverName    String?
+  origin        String
+  destination   String
+  status        String    @default("PENDING")
+  departureDate DateTime?
+  arrivalDate   DateTime?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  deletedAt         DateTime?
+  updatedAt     DateTime  @updatedAt
+  company       Company   @relation(fields: [companyId], references: [id])
+  fleetVehicle  FleetVehicle? @relation(fields: [fleetVehicleId], references: [id])
+  @@index([companyId])
+}
+
+model Client {
+  id               String           @id @default(uuid())
+  companyId        String
+  name             String
+  nif              String
+  email            String?
+  phone            String?
+  address          String?
+  creditLimit      Float            @default(0)
+  currentDebt      Float            @default(0)
+  createdAt        DateTime         @default(now())
+  deletedAt         DateTime?
+  updatedAt        DateTime         @updatedAt
+  company          Company          @relation(fields: [companyId], references: [id])
+  financialEntries  FinancialEntry[]
+  invoices          Invoice[]
+  projects          Project[]
+  accountingCases   AccountingCase[]
+  @@index([companyId])
+}
+
+model Supplier {
+  id               String           @id @default(uuid())
+  companyId        String
+  name             String
+  nif              String
+  email            String?
+  phone            String?
+  address          String?
+  createdAt        DateTime         @default(now())
+  deletedAt         DateTime?
+  updatedAt        DateTime         @updatedAt
+  financialEntries FinancialEntry[]
+  products         Product[]
+  purchaseOrders   PurchaseOrder[]
+  stockMovements   StockMovement[]
+  company          Company          @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model Product {
+  id                 String              @id @default(uuid())
+  companyId          String
+  supplierId         String?
+  name               String
+  code               String
+  type               String              @default("PRODUCT")
+  description        String?
+  category           String?             @default("DIVERSOS")
+  unit               String?             @default("UN")
+  purchasePrice      Float               @default(0)
+  salePrice          Float               @default(0)
+  price              Float
+  cost               Float
+  vatRate            Float               @default(14)
+  margin             Float               @default(0)
+  stock              Int                 @default(0)
+  minStock           Int                 @default(5)
+  imageUrl           String?
+  classification     String?
+  createdAt          DateTime            @default(now())
+  deletedAt         DateTime?
+  updatedAt          DateTime            @updatedAt
+  invoiceItems       InvoiceItem[]
+  company            Company             @relation(fields: [companyId], references: [id])
+  supplier           Supplier?           @relation(fields: [supplierId], references: [id])
+  purchaseOrderItems PurchaseOrderItem[]
+  stockMovements     StockMovement[]
+  posSaleItems       POSSaleItem[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+model Invoice {
+  id                String        @id @default(uuid())
+  companyId         String
+  clientId          String?
+  type              String
+  number            String
+  status            String
+  sourceBilling     String        @default("P")
+  keyVersion        Int           @default(1)
+  issueDate         DateTime      @default(now())
+  dueDate           DateTime
+  systemEntryDate   DateTime      @default(now())
+  invoiceStatusDate DateTime      @default(now())
+  totalAmount       Float
+  totalVat          Float
+  hash              String?
+  hashControl       String?
+  createdAt         DateTime      @default(now())
+  deletedAt         DateTime?
+  updatedAt         DateTime      @updatedAt
+  customerName      String?
+  customerNif       String?
+  customerAddress   String?
+  client            Client?       @relation(fields: [clientId], references: [id])
+  company           Company       @relation(fields: [companyId], references: [id])
+  items             InvoiceItem[]
+  payments          Payment[]
+  posSales          POSSale[]
+  @@index([companyId])
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  productId   String?
+  quantity    Int
+  unitPrice   Float
+  vatRate     Float
+  totalAmount Float
+  description String?
+  productName String?
+  productCode String?
+  discount    Float    @default(0)
+  createdAt   DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime @updatedAt
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  invoiceId String
+  amount    Float
+  method    String
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt DateTime @updatedAt
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+}
+
+model StockMovement {
+  id         String    @id @default(uuid())
+  companyId  String?
+  productId  String
+  supplierId String?
+  type       String
+  quantity   Int
+  date       DateTime  @default(now())
+  notes      String?
+  createdAt  DateTime  @default(now())
+  deletedAt         DateTime?
+  updatedAt  DateTime  @updatedAt
+  company    Company?  @relation(fields: [companyId], references: [id])
+  product    Product   @relation(fields: [productId], references: [id])
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+  @@index([companyId])
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  companyId String
+  plan      String
+  billing   String   @default("MONTHLY")
+  status    String
+  startDate DateTime
+  endDate   DateTime
+  price     Float
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model SubscriptionPlan {
+  id             String   @id @default(uuid())
+  name           String
+  subtitle       String?
+  // Preços por ciclo de facturação (0 = não disponível)
+  priceHourly    Float    @default(0)
+  priceDaily     Float    @default(0)
+  priceWeekly    Float    @default(0)
+  priceBiweekly  Float    @default(0)
+  priceMonthly   Float    @default(0)
+  priceQuarterly Float    @default(0)
+  priceSemiannual Float   @default(0)
+  priceAnnual    Float    @default(0)
+  // Legacy (compat)
+  price       Float    @default(0)
+  annualPrice Float    @default(0)
+  maxUsers    Int
+  color       String?
+  popular     Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  features    String[] @default([])
+  modules     String[] @default([])
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime?
+  updatedAt   DateTime @updatedAt
+  requests    SubscriptionRequest[]
+}
+
+model SubscriptionRequest {
+  id           String            @id @default(uuid())
+  companyId    String
+  planId       String
+  billing      String            @default("MONTHLY")
+  status       String            @default("PENDING")  // PENDING | APPROVED | REJECTED | CANCELLED
+  proofUrl     String?           // comprovativo de pagamento (cloudinary)
+  proofPublicId String?
+  adminNote    String?
+  requestedAt  DateTime          @default(now())
+  reviewedAt   DateTime?
+  company      Company           @relation(fields: [companyId], references: [id])
+  plan         SubscriptionPlan  @relation(fields: [planId], references: [id])
+  @@index([companyId])
+}
+
+model AppNotification {
+  id        String   @id @default(uuid())
+  companyId String
+  userId    String?
+  type      String   // SUB_REQUESTED | SUB_APPROVED | SUB_REJECTED | SUB_CANCELLED
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  meta      String?  // JSON string com dados adicionais
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+  company   Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+
+model PaymentMethod {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   @default("BANK_TRANSFER")
+  details   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+  @@index([companyId])
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  title      String
+  content    String
+  targetRole String?
+  isGlobal   Boolean  @default(true)
+  companyId  String?
+  createdAt  DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt  DateTime @updatedAt
+  company    Company? @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model FinancialEntry {
+  id          String    @id @default(uuid())
+  companyId   String
+  type        String
+  description String
+  amount      Float
+  dueDate     DateTime
+  paidAt      DateTime?
+  status      String    @default("PENDING")
+  category    String?
+  supplierId  String?
+  clientId    String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime  @updatedAt
+  client      Client?   @relation(fields: [clientId], references: [id])
+  company     Company   @relation(fields: [companyId], references: [id])
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  @@index([companyId])
+}
+
+model PurchaseOrder {
+  id           String              @id @default(uuid())
+  companyId    String
+  number       String
+  supplierId   String
+  status       String              @default("DRAFT")
+  orderDate    DateTime            @default(now())
+  expectedDate DateTime?
+  totalAmount  Float               @default(0)
+  notes        String?
+  createdAt    DateTime            @default(now())
+  deletedAt    DateTime?
+  updatedAt    DateTime            @updatedAt
+  company      Company             @relation(fields: [companyId], references: [id])
+  supplier     Supplier            @relation(fields: [supplierId], references: [id])
+  items        PurchaseOrderItem[]
+  @@index([companyId])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  productId       String
+  quantity        Int
+  unitCost        Float
+  totalCost       Float
+  receivedQty     Int           @default(0)
+  product         Product       @relation(fields: [productId], references: [id])
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+}
+
+model Payroll {
+  id          String    @id @default(uuid())
+  companyId   String
+  employeeId  String
+  periodMonth Int
+  periodYear  Int
+  baseSalary  Float
+  bonuses     Float     @default(0)
+  deductions  Float     @default(0)
+  netSalary   Float
+  status      String    @default("PENDING")
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime  @updatedAt
+  company     Company   @relation(fields: [companyId], references: [id])
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, periodMonth, periodYear])
+  @@index([companyId])
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  clientId    String?
+  status      String        @default("PLANNING")
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float?
+  createdAt   DateTime      @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime      @updatedAt
+  client      Client?       @relation(fields: [clientId], references: [id])
+  company     Company       @relation(fields: [companyId], references: [id])
+  tasks       ProjectTask[]
+  @@index([companyId])
+}
+
+model StrategicObjective {
+  id          String      @id @default(uuid())
+  companyId   String
+  title       String
+  description String?
+  status      String      @default("ON_TRACK")
+  progress    Float       @default(0)
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime    @default(now())
+  deletedAt   DateTime?
+  updatedAt   DateTime    @updatedAt
+  keyResults  KeyResult[]
+  company     Company     @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model KeyResult {
+  id          String             @id @default(uuid())
+  objectiveId String
+  title       String
+  current     Float              @default(0)
+  target      Float
+  unit        String
+  progress    Float              @default(0)
+  objective   StrategicObjective @relation(fields: [objectiveId], references: [id])
+}
+
+model TrainingCourse {
+  id          String           @id @default(uuid())
+  companyId   String
+  title       String
+  category    String
+  description String?
+  instructor  String?
+  duration    String?
+  status      String           @default("ACTIVE")
+  rating      Float?
+  enrolled    Int              @default(0)
+  createdAt   DateTime         @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime         @updatedAt
+  company     Company          @relation(fields: [companyId], references: [id])
+  lessons     TrainingLesson[]
+  @@index([companyId])
+}
+
+model TrainingLesson {
+  id        String         @id @default(uuid())
+  courseId  String
+  title     String
+  content   String?
+  videoUrl  String?
+  duration  String?
+  order     Int            @default(0)
+  createdAt DateTime       @default(now())
+  deletedAt         DateTime?
+  updatedAt DateTime       @updatedAt
+  course    TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Asset {
+  id          String              @id @default(uuid())
+  companyId   String
+  name        String
+  code        String              @unique
+  category    String
+  status      String              @default("OPERATIONAL")
+  health      Float               @default(100)
+  lastMaint   DateTime?
+  nextMaint   DateTime?
+  createdAt   DateTime            @default(now())
+  deletedAt   DateTime?
+  updatedAt   DateTime            @updatedAt
+  company     Company             @relation(fields: [companyId], references: [id])
+  maintenance MaintenanceRecord[]
+  @@index([companyId])
+}
+
+model MaintenanceRecord {
+  id          String   @id @default(uuid())
+  assetId     String
+  type        String   @default("PREVENTIVE")
+  description String
+  cost        Float    @default(0)
+  date        DateTime @default(now())
+  status      String   @default("COMPLETED")
+  asset       Asset    @relation(fields: [assetId], references: [id])
+}
+
+model Contract {
+  id         String   @id @default(uuid())
+  companyId  String
+  title      String
+  entity     String
+  value      Float?
+  currency   String   @default("AOA")
+  category   String   @default("GENERAL")
+  priority   String   @default("MEDIUM")
+  status     String   @default("ACTIVE")
+  expiryDate DateTime
+  createdAt  DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt  DateTime @updatedAt
+  company    Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model BankAccount {
+  id        String   @id @default(uuid())
+  companyId String
+  bank      String
+  iban      String
+  balance   Float    @default(0)
+  type      String   @default("SAVINGS")
+  color     String?
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  type        String
+  size        String?
+  status      String   @default("VALID")
+  owner       String?
+  version     String?  @default("v1.0")
+  department  String?
+  category    String?  @default("OTHERS")
+  accessLevel String?  @default("PUBLIC")
+  filePath    String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime?
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model HSEIncident {
+  id          String   @id @default(uuid())
+  companyId   String
+  title       String
+  type        String
+  location    String
+  level       String   @default("LOW")
+  reporter    String
+  date        DateTime @default(now())
+  status      String   @default("OPEN")
+  description String?
+  company     Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model QualityInspection {
+  id        String   @id @default(uuid())
+  companyId String
+  item      String
+  result    String   @default("PASSED")
+  score     Float    @default(100)
+  inspector String
+  date      DateTime @default(now())
+  notes     String?
+  company   Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model ExpenseClaim {
+  id        String   @id @default(uuid())
+  companyId String
+  title     String
+  category  String
+  amount    Float
+  status    String   @default("PENDING")
+  date      DateTime @default(now())
+  userId    String?
+  company   Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model POSTerminal {
+  id          String       @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  status      String       @default("ACTIVE")
+  lastSync    DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime     @updatedAt
+  company     Company      @relation(fields: [companyId], references: [id])
+  sales       POSSale[]
+  sessions    POSSession[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model POSSession {
+  id         String      @id @default(uuid())
+  companyId  String
+  terminalId String
+  operatorId String
+  openedAt   DateTime    @default(now())
+  closedAt   DateTime?
+  openingBalance Float
+  closingBalance Float?
+  status     String      @default("OPEN")
+  createdAt  DateTime    @default(now())
+  deletedAt  DateTime?
+  updatedAt  DateTime    @updatedAt
+  company    Company     @relation(fields: [companyId], references: [id])
+  terminal   POSTerminal @relation(fields: [terminalId], references: [id])
+  sales      POSSale[]
+  @@index([companyId])
+}
+
+model POSSale {
+  id          String       @id @default(uuid())
+  companyId   String
+  terminalId  String?
+  sessionId   String?
+  invoiceId   String?
+  amount      Float
+  taxAmount   Float        @default(0)
+  discount    Float        @default(0)
+  paymentMethod String     @default("CASH")
+  itemsCount  Int
+  operator    String       @default("SISTEMA")
+  status      String       @default("COMPLETED")
+  date        DateTime     @default(now())
+  company     Company      @relation(fields: [companyId], references: [id])
+  terminal    POSTerminal? @relation(fields: [terminalId], references: [id])
+  session     POSSession?  @relation(fields: [sessionId], references: [id])
+  invoice     Invoice?     @relation(fields: [invoiceId], references: [id])
+  items       POSSaleItem[]
+  @@index([companyId])
+}
+
+model POSSaleItem {
+  id        String   @id @default(uuid())
+  saleId    String
+  productId String
+  quantity  Float
+  unitPrice Float
+  totalPrice Float
+  taxAmount Float    @default(0)
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+  sale      POSSale  @relation(fields: [saleId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model ProjectTask {
+  id          String    @id @default(uuid())
+  projectId   String
+  title       String
+  description String?
+  status      String    @default("TODO")
+  priority    String    @default("MEDIUM")
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime  @updatedAt
+  project     Project   @relation(fields: [projectId], references: [id])
+}
+
+model Risk {
+  id          String    @id @default(uuid())
+  companyId   String
+  title       String
+  description String?
+  category    String
+  department  String?
+  probability Int       @default(1)
+  impact      Int       @default(1)
+  score       Int       @default(1)
+  level       String    @default("LOW")
+  status      String    @default("OPEN")
+  owner       String?
+  mitigation  String?
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime  @updatedAt
+  company     Company   @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model BudgetLine {
+  id         String   @id @default(uuid())
+  companyId  String
+  department String
+  category   String
+  planned    Float
+  actual     Float    @default(0)
+  variance   Float    @default(0)
+  status     String   @default("ON_TRACK")
+  period     String
+  notes      String?
+  createdAt  DateTime @default(now())
+  deletedAt  DateTime?
+  updatedAt  DateTime @updatedAt
+  company    Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model Candidate {
+  id         String   @id @default(uuid())
+  companyId  String
+  name       String
+  email      String?
+  phone      String?
+  position   String
+  department String?
+  stage      String   @default("APPLIED")
+  source     String?
+  rating     Int      @default(0)
+  notes      String?
+  cv         String?
+  appliedAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  company    Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model FleetVehicle {
+  id          String       @id @default(uuid())
+  companyId   String
+  plate       String       @unique
+  brand       String
+  model       String
+  type        String       @default("SUV")
+  year        Int
+  status      String       @default("AVAILABLE")
+  driver      String?
+  km          Int          @default(0)
+  lastService DateTime?
+  nextService Int          @default(10000)
+  fuelType    String       @default("DIESEL")
+  department  String?
+  insurance   DateTime?
+  notes       String?
+  createdAt   DateTime     @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime     @updatedAt
+  company     Company      @relation(fields: [companyId], references: [id])
+  fuelRecords FuelRecord[]
+  transports  Transport[]
+}
+
+model FuelRecord {
+  id             String       @id @default(uuid())
+  companyId      String
+  fleetVehicleId String
+  date           DateTime     @default(now())
+  liters         Float        @default(0)
+  cost           Float
+  km             Int
+  station        String?
+  createdAt      DateTime     @default(now())
+  deletedAt         DateTime?
+  fleetVehicle   FleetVehicle? @relation(fields: [fleetVehicleId], references: [id])
+  @@index([companyId])
+}
+
+model ApprovalRequest {
+  id          String         @id @default(uuid())
+  companyId   String
+  title       String
+  type        String
+  requester   String
+  department  String?
+  amount      Float?
+  status      String         @default("PENDING")
+  priority    String         @default("NORMAL")
+  description String?
+  attachments Int            @default(0)
+  createdAt   DateTime       @default(now())
+  deletedAt   DateTime?
+  updatedAt   DateTime       @updatedAt
+  company     Company        @relation(fields: [companyId], references: [id])
+  steps       ApprovalStep[]
+  @@index([companyId])
+}
+
+model ApprovalStep {
+  id                String          @id @default(uuid())
+  approvalRequestId String
+  role              String
+  approverName      String?
+  status            String          @default("PENDING")
+  comment           String?
+  decidedAt         DateTime?
+  order             Int             @default(0)
+  approvalRequest   ApprovalRequest @relation(fields: [approvalRequestId], references: [id])
+}
+
+model KPIIndicator {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  department  String
+  category    String?
+  current     Float    @default(0)
+  target      Float
+  unit        String   @default("%")
+  trend       Float    @default(0)
+  period      String
+  owner       String?
+  status      String   @default("ON_TRACK")
+  description String?
+  createdAt   DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  companyId   String
+  title       String
+  type        String   @default("MEETING")
+  date        DateTime
+  startTime   String
+  endTime     String
+  location    String?
+  isVirtual   Boolean  @default(false)
+  attendees   String?
+  status      String   @default("SCHEDULED")
+  description String?
+  department  String?
+  reminder    Int      @default(30)
+  createdAt   DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model Market {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  country     String
+  status      String   @default("PROSPECTING")
+  revenue     Float    @default(0)
+  clients     Int      @default(0)
+  growth      Float    @default(0)
+  marketShare Float    @default(0)
+  currency    String   @default("AOA")
+  entryYear   Int
+  manager     String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+model ProductionOrder {
+  id          String    @id @default(uuid())
+  companyId   String
+  orderNumber String    @unique
+  productName String
+  quantity    Int       @default(0)
+  status      String    @default("PENDING")
+  priority    String    @default("MEDIUM")
+  startDate   DateTime?
+  endDate     DateTime?
+  progress    Float     @default(0)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime  @updatedAt
+  company     Company   @relation(fields: [companyId], references: [id])
+  @@index([companyId])
+}
+
+// ── Suporte / Tickets ──────────────────────────────────────────────────────
+
+model SupportTicket {
+  id        String          @id @default(uuid())
+  companyId String
+  userId    String?
+  subject   String
+  category  String          @default("GENERAL")
+  priority  String          @default("MEDIUM")
+  status    String          @default("OPEN")
+  createdAt DateTime        @default(now())
+  deletedAt         DateTime?
+  updatedAt DateTime        @updatedAt
+  company   Company         @relation(fields: [companyId], references: [id])
+  user      User?           @relation(fields: [userId], references: [id])
+  messages  TicketMessage[]
+  @@index([companyId])
+}
+
+model TicketMessage {
+  id         String        @id @default(uuid())
+  ticketId   String
+  userId     String?
+  content    String
+  senderRole String        @default("CLIENT")
+  createdAt  DateTime      @default(now())
+  deletedAt         DateTime?
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user       User?         @relation(fields: [userId], references: [id])
+}
+
+// ── Newsletter ─────────────────────────────────────────────────────────────
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  company   String?
+  type      String   @default("NEWSLETTER")
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+}
+
+// ── Contacto público ───────────────────────────────────────────────────────
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  company   String?
+  phone     String?
+  subject   String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  deletedAt         DateTime?
+}
+
+
+// ── Módulo de Contabilidade Profissional ──────────────────────────────────
+
+// Plano Geral de Contabilidade (PGC Angola)
+model ChartOfAccount {
+  id          String   @id @default(uuid())
+  companyId   String?  // null = conta global do sistema
+  code        String   // ex: "11", "211", "3111"
+  name        String
+  description String?
+  nature      String   @default("DEBIT")  // DEBIT | CREDIT
+  class       String   // ATIVO | PASSIVO | CAPITAL | RENDIMENTO | GASTO | ORDEM
+  level       Int      @default(1)         // 1=Classe, 2=Conta, 3=Subconta, 4=Analítica
+  parentCode  String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime @updatedAt
+  company     Company? @relation(fields: [companyId], references: [id])
+  journalLines JournalEntryLine[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+// Lançamentos no Diário (partidas dobradas)
+model JournalEntry {
+  id          String             @id @default(uuid())
+  companyId   String
+  caseId      String?            // ligado a um processo (opcional)
+  number      String             // número sequencial do lançamento
+  date        DateTime           @default(now())
+  description String
+  reference   String?            // nº documento externo (factura, recibo...)
+  type        String             @default("MANUAL")  // MANUAL | AUTO | ADJUSTMENT | CLOSING
+  status      String             @default("DRAFT")   // DRAFT | POSTED | CANCELLED
+  postedAt    DateTime?
+  postedBy    String?
+  totalDebit  Float              @default(0)
+  totalCredit Float              @default(0)
+  notes       String?
+  createdAt   DateTime           @default(now())
+  deletedAt   DateTime?
+  updatedAt   DateTime           @updatedAt
+  company     Company            @relation(fields: [companyId], references: [id])
+  case        AccountingCase?    @relation(fields: [caseId], references: [id])
+  lines       JournalEntryLine[]
+  @@index([companyId])
+}
+
+model JournalEntryLine {
+  id           String          @id @default(uuid())
+  entryId      String
+  accountId    String
+  description  String?
+  debit        Float           @default(0)
+  credit       Float           @default(0)
+  order        Int             @default(0)
+  entry        JournalEntry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  account      ChartOfAccount  @relation(fields: [accountId], references: [id])
+}
+
+// Processo/Dossier de Contabilidade do Cliente
+model AccountingCase {
+  id           String               @id @default(uuid())
+  companyId    String
+  clientId     String?
+  title        String
+  period       String               // ex: "2025-Q1", "2025-04", "2025"
+  periodType   String               @default("MONTHLY")  // MONTHLY | QUARTERLY | ANNUAL | CUSTOM
+  status       String               @default("PENDING_SUBMISSION")
+  // PENDING_SUBMISSION → SUBMITTED → UNDER_REVIEW → PENDING_INFO → REVIEWED → CLOSED | REJECTED
+  priority     String               @default("NORMAL")   // LOW | NORMAL | HIGH | URGENT
+  description  String?
+  adminNote    String?              // resposta/feedback do contabilista
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  submittedAt  DateTime?
+  dueDate      DateTime?
+  totalRevenue Float                @default(0)
+  totalExpense Float                @default(0)
+  taxableBase  Float                @default(0)
+  ivaLiquidado Float                @default(0)
+  ivaDedutivel Float                @default(0)
+  irtAmount    Float                @default(0)
+  netResult    Float                @default(0)
+  createdAt    DateTime             @default(now())
+  deletedAt         DateTime?
+  updatedAt    DateTime             @updatedAt
+  company      Company              @relation(fields: [companyId], references: [id])
+  client       Client?              @relation(fields: [clientId], references: [id])
+  documents    AccountingDocument[]
+  journalEntries JournalEntry[]
+  messages     AccountingCaseMessage[]
+  @@index([companyId])
+}
+
+// Mensagens/Chat do Processo Contabilístico
+model AccountingCaseMessage {
+  id         String         @id @default(uuid())
+  caseId     String
+  userId     String?
+  content    String
+  senderRole String         @default("CLIENT") // CLIENT | CONSULTANT
+  createdAt  DateTime       @default(now())
+  deletedAt  DateTime?
+  case       AccountingCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  user       User?          @relation(fields: [userId], references: [id])
+}
+
+// Documentos anexados a um processo contabilístico
+model AccountingDocument {
+  id          String         @id @default(uuid())
+  caseId      String
+  uploadedBy  String?
+  name        String
+  type        String         @default("INVOICE")
+  // INVOICE | RECEIPT | BANK_STATEMENT | PAYROLL | TAX_RETURN | CONTRACT | OTHER
+  description String?
+  fileUrl     String
+  filePublicId String?
+  fileSizeKb  Float?
+  mimeType    String?
+  status      String         @default("PENDING")  // PENDING | ACCEPTED | REJECTED | NEEDS_REVISION
+  adminNote   String?
+  uploadedAt  DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  case        AccountingCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+}
+
+// ── Configurações Globais do Sistema ──────────────────────────────────────
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String?
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+model TrustedPartner {
+  id          String   @id @default(uuid())
+  name        String
+  logoUrl     String?
+  websiteUrl  String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  deletedAt         DateTime?
+  updatedAt   DateTime @updatedAt
+}

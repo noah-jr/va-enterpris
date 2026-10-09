@@ -1,0 +1,254 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%; 
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 30%; 
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 0% 40%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 13%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 80%; 
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 0% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 83%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .dashed-circle {
+     border-style: dashed;
+     border-width: 2px; /* Increased from 1px to be more visible */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Tesla Style System */
+  .tesla-container {
+    @apply max-w-[1400px] mx-auto px-6 md:px-12 w-full;
+  }
+  
+  .tesla-section-spacing {
+    @apply py-24 md:py-32;
+  }
+
+  /* ===================================
+     VA TECH ADMIN - UNIFIED THEME
+     =================================== */
+
+  /* Admin Card Styles */
+  .admin-card {
+    @apply !border-none !bg-white dark:!bg-card shadow-sm rounded-[20px] transition-all hover:shadow-lg dark:shadow-none border dark:border-border;
+  }
+
+  .admin-card-header {
+    @apply p-6 border-b border-gray-100 dark:border-gray-800;
+  }
+
+  .admin-card-content {
+    @apply p-6;
+  }
+
+  /* Admin Table Styles */
+  .admin-table-container {
+    @apply relative w-full overflow-auto;
+  }
+
+  .admin-table {
+    @apply w-full text-sm text-left;
+  }
+
+  .admin-table-header {
+    @apply text-xs text-gray-500 uppercase bg-gray-50/50 dark:bg-white/5 dark:text-gray-400;
+  }
+
+  .admin-table-header-cell {
+    @apply px-4 py-3 font-medium;
+  }
+
+  .admin-table-row {
+    @apply border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors;
+  }
+
+  .admin-table-cell {
+    @apply px-4 py-4;
+  }
+
+  /* Admin Button Styles */
+  .admin-btn-primary {
+    @apply bg-foreground hover:bg-foreground/90 text-white rounded-xl px-6 transition-all;
+  }
+
+  .admin-btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-foreground dark:text-white rounded-xl px-6 transition-all;
+  }
+
+  .admin-btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white rounded-xl px-6 transition-all;
+  }
+
+  .admin-btn-icon {
+    @apply h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 hover:text-foreground dark:text-gray-400 dark:hover:text-white transition-colors;
+  }
+
+  .admin-btn-icon-danger {
+    @apply h-8 w-8 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-500 hover:text-red-600 transition-colors;
+  }
+
+  /* Admin Form Styles */
+  .admin-form-label {
+    @apply block text-sm font-medium text-foreground dark:text-white mb-2;
+  }
+
+  .admin-form-input {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-foreground dark:text-white focus:ring-2 focus:ring-foreground dark:focus:ring-white focus:border-transparent transition-all;
+  }
+
+  .admin-form-textarea {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-foreground dark:text-white focus:ring-2 focus:ring-foreground dark:focus:ring-white focus:border-transparent transition-all min-h-[120px];
+  }
+
+  .admin-form-select {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-foreground dark:text-white focus:ring-2 focus:ring-foreground dark:focus:ring-white focus:border-transparent transition-all;
+  }
+
+  .admin-form-checkbox {
+    @apply h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-foreground focus:ring-foreground dark:focus:ring-white;
+  }
+
+  /* Admin Badge Styles */
+  .admin-badge-success {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-400;
+  }
+
+  .admin-badge-danger {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-400;
+  }
+
+  .admin-badge-warning {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-400;
+  }
+
+  .admin-badge-info {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400;
+  }
+
+  /* Admin Status Indicator */
+  .admin-status-dot {
+    @apply h-2.5 w-2.5 rounded-full;
+  }
+
+  .admin-status-active {
+    @apply bg-green-500;
+  }
+
+  .admin-status-inactive {
+    @apply bg-red-500;
+  }
+
+  .admin-status-pending {
+    @apply bg-yellow-500;
+  }
+
+  /* Admin Page Header */
+  .admin-page-header {
+    @apply flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6;
+  }
+
+  .admin-page-title {
+    @apply text-2xl font-bold text-foreground dark:text-white;
+  }
+
+  .admin-page-subtitle {
+    @apply text-gray-500 dark:text-gray-400;
+  }
+
+  /* Admin Empty State */
+  .admin-empty-state {
+    @apply p-12 text-center text-gray-500 dark:text-gray-400;
+  }
+
+  /* Admin Loading State */
+  .admin-loading {
+    @apply flex items-center justify-center p-12;
+  }
+
+  /* Admin Search Bar */
+  .admin-search-bar {
+    @apply relative;
+  }
+
+  .admin-search-input {
+    @apply w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-foreground dark:text-white focus:ring-2 focus:ring-foreground dark:focus:ring-white focus:border-transparent transition-all;
+  }
+
+  .admin-search-icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400;
+  }
+
+  /* Admin Action Menu */
+  .admin-action-menu {
+    @apply flex items-center justify-end gap-2;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-border/40 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-border/60;
+  }
+}

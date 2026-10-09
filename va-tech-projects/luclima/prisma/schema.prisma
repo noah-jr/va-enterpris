@@ -1,0 +1,251 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  SECTOR_MANAGER
+  EDITOR
+  EMPLOYEE
+}
+
+enum ServiceRequestStatus {
+  NEW
+  IN_ANALYSIS
+  IN_EXECUTION
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// Models
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(EMPLOYEE)
+  isActive  Boolean  @default(true)
+  avatar    String?
+  qrCode    String?  @db.Text // URL do QR Code gerado
+  
+  sectorId  String?
+  sector    Sector?  @relation(fields: [sectorId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relações
+  serviceRequests       ServiceRequest[] @relation("AssignedTo")
+  createdServiceRequests ServiceRequest[] @relation("CreatedBy")
+  projects              Project[]
+  posts                 Post[]
+  sentMessages          ChatMessage[]    @relation("SentMessages")
+  
+  @@index([email])
+  @@index([sectorId])
+  @@map("users")
+}
+
+model Sector {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relações
+  users           User[]
+  services        Service[]
+  projects        Project[]
+  serviceRequests ServiceRequest[]
+  
+  @@map("sectors")
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @db.Text
+  image       String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  
+  sectorId    String
+  sector      Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relações
+  serviceRequests ServiceRequest[]
+  
+  @@index([sectorId])
+  @@map("services")
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  description String        @db.Text
+  images      String        @db.Text // JSON array de URLs
+  status      ProjectStatus @default(ACTIVE)
+  completedAt DateTime?
+  
+  sectorId    String
+  sector      Sector        @relation(fields: [sectorId], references: [id])
+  
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index([sectorId])
+  @@index([userId])
+  @@map("projects")
+}
+
+model ServiceRequest {
+  id          String               @id @default(cuid())
+  name        String
+  email       String
+  phone       String
+  description String               @db.Text
+  attachment  String?
+  status      ServiceRequestStatus @default(NEW)
+  
+  serviceId   String
+  service     Service              @relation(fields: [serviceId], references: [id])
+  
+  sectorId    String
+  sector      Sector               @relation(fields: [sectorId], references: [id])
+  
+  assignedToId String?
+  assignedTo   User?               @relation("AssignedTo", fields: [assignedToId], references: [id])
+  
+  createdById  String?
+  createdBy    User?               @relation("CreatedBy", fields: [createdById], references: [id])
+  
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  
+  @@index([serviceId])
+  @@index([sectorId])
+  @@index([assignedToId])
+  @@index([status])
+  @@map("service_requests")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relações
+  posts Post[]
+  
+  @@map("categories")
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  content     String     @db.LongText
+  excerpt     String?    @db.Text
+  image       String?
+  status      PostStatus @default(DRAFT)
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String? @db.Text
+  
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+  
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([slug])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([status])
+  @@map("posts")
+}
+
+model Newsletter {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  isActive    Boolean  @default(true)
+  subscribedAt DateTime @default(now())
+  
+  @@index([email])
+  @@map("newsletters")
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String
+  message    String   @db.Text
+  isReplied  Boolean  @default(false)
+  repliedAt  DateTime?
+  createdAt  DateTime @default(now())
+  
+  @@index([isReplied])
+  @@map("contacts")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  message   String   @db.Text
+  
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  
+  createdAt DateTime @default(now())
+  
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+model NewsletterCampaign {
+  id        String   @id @default(cuid())
+  subject   String
+  content   String   @db.LongText
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+  
+  @@map("newsletter_campaigns")
+}

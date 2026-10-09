@@ -1,0 +1,8 @@
+CRITICAL:root:Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/cliapp/app.py", line 167, in _run
+    self._set_process_name()
+  File "/usr/lib/python3/dist-packages/cliapp/app.py", line 162, in _set_process_name
+    with open('/proc/self/comm', 'wb', 0) as f:
+OSError: [Errno 30] Read-only file system: '/proc/self/comm'
+
+ERROR: [Errno 30] Read-only file system: '/proc/self/comm'

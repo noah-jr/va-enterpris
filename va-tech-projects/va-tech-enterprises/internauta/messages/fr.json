@@ -1,0 +1,125 @@
+{
+  "home": {
+    "hero": {
+      "title": "Technologie, Sécurité et Marketing en Un Seul Endroit",
+      "subtitle": "Solutions complètes pour dynamiser votre entreprise dans le monde numérique"
+    },
+    "services": {
+      "title": "Nos Services",
+      "subtitle": "Nous offrons des solutions complètes en technologie, sécurité et marketing digital"
+    },
+    "stats": {
+      "visitors": "Visiteurs",
+      "rating": "d'Évaluation",
+      "sales": "Ventes Réalisées",
+      "leads": "Leads Générés"
+    },
+    "cta": {
+      "contact": "Nous Contacter",
+      "services": "Voir les Services",
+      "learnMore": "En Savoir Plus"
+    }
+  },
+  "services": {
+    "infrastructure": {
+      "title": "Infrastructure Réseau",
+      "description": "Planification, installation et maintenance de réseaux informatiques pour garantir stabilité, vitesse et performance de votre entreprise."
+    },
+    "cybersecurity": {
+      "title": "Cybersécurité",
+      "description": "Protection des données, systèmes et réseaux contre les attaques, virus et accès non autorisés, garantissant sécurité et confiance."
+    },
+    "cctv": {
+      "title": "CCTV",
+      "description": "Système de vidéosurveillance pour surveillance 24H, augmentant la sécurité des entreprises, résidences et installations."
+    },
+    "digitalMarketing": {
+      "title": "Marketing Digital",
+      "description": "Stratégies digitales pour augmenter la visibilité de votre marque et attirer plus de clients en ligne."
+    },
+    "paidTraffic": {
+      "title": "Trafic Payant",
+      "description": "Création et gestion d'annonces payantes pour générer des résultats rapides, des leads qualifiés et augmenter les ventes."
+    },
+    "socialMedia": {
+      "title": "Gestion des Réseaux Sociaux",
+      "description": "Planification, création de contenu et gestion des réseaux sociaux pour améliorer la relation client et l'image de marque."
+    },
+    "hardware": {
+      "title": "Vente de Matériel Informatique",
+      "description": "Fourniture d'équipements et accessoires informatiques de qualité pour répondre aux besoins de votre entreprise."
+    },
+    "webDevelopment": {
+      "title": "Développement de Sites Web",
+      "description": "Création de sites web modernes, responsifs et professionnels pour renforcer la présence digitale de votre entreprise."
+    }
+  },
+  "navigation": {
+    "home": "Accueil",
+    "services": "Services",
+    "blog": "Blog",
+    "about": "À Propos",
+    "contact": "Contact"
+  },
+  "footer": {
+    "company": "Entreprise",
+    "services": "Services",
+    "legal": "Légal",
+    "followUs": "Suivez-nous",
+    "allRightsReserved": "Tous droits réservés",
+    "privacyPolicy": "Politique de Confidentialité",
+    "termsOfService": "Conditions d'Utilisation",
+    "cookiePolicy": "Politique de Cookies"
+  },
+  "contact": {
+    "title": "Nous Contacter",
+    "subtitle": "Nous sommes là pour vous aider. Contactez-nous",
+    "form": {
+      "name": "Nom Complet",
+      "email": "Email",
+      "phone": "Téléphone",
+      "subject": "Sujet",
+      "message": "Message",
+      "send": "Envoyer le Message",
+      "success": "Message envoyé avec succès!",
+      "error": "Erreur lors de l'envoi du message. Veuillez réessayer."
+    }
+  },
+  "newsletter": {
+    "title": "Abonnez-vous à Notre Newsletter",
+    "subtitle": "Recevez les dernières nouvelles et mises à jour",
+    "placeholder": "Entrez votre email",
+    "subscribe": "S'abonner",
+    "success": "Abonnement réussi!",
+    "error": "Erreur lors de l'abonnement. Veuillez réessayer."
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Articles et actualités sur la technologie, la sécurité et le marketing",
+    "readMore": "Lire Plus",
+    "readTime": "min de lecture",
+    "publishedOn": "Publié le",
+    "relatedPosts": "Articles Connexes"
+  },
+  "about": {
+    "title": "À Propos de Nous",
+    "subtitle": "Découvrez VA - Technologie, Sécurité et Marketing"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer"
+  }
+}
